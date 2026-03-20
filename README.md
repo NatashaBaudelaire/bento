@@ -64,15 +64,14 @@ cd botdiscord
 
 ---
 
-# Criar e Configurar o Bot no Discord
+# Create and Configure the Bot on Discord
 
 1. Go to: [https://discord.com/developers/applications](https://discord.com/developers/applications)
-2. Click em New Application
+2. Click on New Application
 3. Name it: BentoBot
 4. Go to Bot → Add Bot
 5. Copy the TOKEN
 6. In OAuth2 → URL Generator, select:
-
    * Scopes: bot
    * Permissions: Send Messages, Read Messages, Embed Links, Manage Messages
 7. Generate the link and add the bot to your server
