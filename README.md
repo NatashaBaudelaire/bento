@@ -58,8 +58,8 @@ Before starting, install:
 # Clone the Repository
 
 ```bash
-git clone https://github.com/nerysecurity/botdiscord
-cd botdiscord
+git clone https://github.com/natashabaudelaire/bentobot
+cd bentobot
 ```
 
 ---
