@@ -1,160 +1,94 @@
-# Bento Bot: Gamified Chatbot for Discord
+<h1 align="center">
+  Bento Bot
+</h1>
 
-Bento Bot is a gamified chatbot developed for Discord, designed to encourage discipline, motivation, and consistency in studying through quizzes, XP, levels, rankings, and focus tools.
+## Objective
 
----
+The main goal of this project was to develop a gamified chatbot for Discord, designed to encourage discipline, motivation, and consistency in studying through **quizzes, XP, levels, rankings, and focus tools**. The bot was built using **Node.js** with **Discord.js** (or Python with discord.py), integrated with a **PostgreSQL** database to persist user data, answer history, and daily XP control — with optional deployment via **Docker Compose**.
 
-# About the Project
+***
 
-Bento Bot transforms study routines into a light and engaging experience using game mechanics.
+## Contents
 
-Features include:
+1. [Project Overview](#project-overview)
+2. [Objective](#objective)
+3. [Technologies Used](#technologies-used)
+4. [Installation and Execution](#installation-and-execution)
+5. [Command List](#command-list)
+6. [Key Concepts Applied](#key-concepts-applied)
+7. [Improvements to Implement](#improvements-to-implement)
+8. [Contact](#contact)
 
-* Daily quizzes
-* XP and leveling system
-* Global ranking
-* Answer history tracking
-* Daily XP limit (first 10 correct answers)
-* Category-based questions
-* Focus Rooms
+***
 
----
+## Project Overview
 
-# Technologies Used
+Bento Bot transforms study routines into a light and engaging experience using game mechanics. Players answer daily quizzes, earn XP for correct answers, level up, compete on a global ranking, and track their answer history — all inside Discord, with a daily XP cap to encourage consistency over grinding.
 
-* Node.js or Python
-* Discord.js or discord.py
-* PostgreSQL
-* Docker & Docker Compose (optional, recommended)
-* Git & GitHub
-* VS Code
+***
 
----
+## Technologies Used
 
-# Prerequisites
+- **Node.js** or **Python**
+- **Discord.js** or **discord.py**
+- **PostgreSQL**
+- **Docker & Docker Compose** (optional, recommended)
+- **Git & GitHub**
+- **VS Code**
 
-Before starting, install:
+***
 
-* Node.js 16+
-* (Optional) Python 3.10+
-* PostgreSQL
-* Git
-* VS Code
-* A Discord account
-* A bot created in the Discord Developer Portal
+## Key Features
 
----
+- Daily quizzes with category-based questions
+- XP and leveling system with global ranking
+- Daily XP limit: only the first 10 correct answers per day grant XP
+- Answer history tracking per user
+- Focus Rooms for dedicated study sessions
+- Full user profile with XP, level, and progress display
+- Persistent data via PostgreSQL with structured DDL and seed files
+- Containerised deployment with Docker Compose
 
-# Project Structure
+***
 
-* /db/init.sql → DDL do banco
-* /db/seed.sql → perguntas iniciais
-* bot.js / bot.py → aplicação principal
-* docker-compose.yml (opcional, recomendado)
-* .env → variáveis sensíveis
+## Improvements to Implement
 
----
+- Global ranking with weekly leagues and seasons
+- Rare collectible achievements
+- Mobile app integration
+- Expanded question bank with more categories
 
-# Clone the Repository
+***
+
+## Installation and Execution
+
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/natashabaudelaire/bentobot
 cd bentobot
 ```
 
----
+### 2. Requirements
 
-# Create and Configure the Bot on Discord
+- Node.js 16+ (or Python 3.10+)
+- PostgreSQL
+- Git
+- VS Code
+- A Discord account and a bot created in the [Discord Developer Portal](https://discord.com/developers/applications)
 
-1. Go to: [https://discord.com/developers/applications](https://discord.com/developers/applications)
-2. Click on New Application
-3. Name it: BentoBot
-4. Go to Bot → Add Bot
-5. Copy the TOKEN
-6. In OAuth2 → URL Generator, select:
-   * Scopes: bot
-   * Permissions: Send Messages, Read Messages, Embed Links, Manage Messages
-7. Generate the link and add the bot to your server
+### 3. Configure the bot on Discord
 
-⚠️ **Never publish your TOKEN on GitHub**
+1. Go to the Discord Developer Portal and click **New Application**
+2. Name it **BentoBot**, then go to **Bot → Add Bot** and copy the TOKEN
+3. In **OAuth2 → URL Generator**, select scopes: `bot` and permissions: Send Messages, Read Messages, Embed Links, Manage Messages
+4. Generate the link and add the bot to your server
 
----
+> ⚠️ Never publish your TOKEN on GitHub
 
-# Configure PostgreSQL Database
+### 4. Create the `.env` file
 
-## Local Installation
-
-Access psql:
-
-```sql
-CREATE DATABASE bentobot;
-CREATE USER bentobot_user WITH PASSWORD 'secure_password';
-GRANT ALL PRIVILEGES ON DATABASE bentobot TO bentobot_user;
-```
-
----
-
-# Create Tables (DDL)
-
-Create the file db/init.sql:
-```sql
-CREATE TABLE users (
-  id SERIAL PRIMARY KEY,
-  discord_id VARCHAR(50) NOT NULL UNIQUE,
-  username VARCHAR(100),
-  xp INTEGER DEFAULT 0,
-  level INTEGER DEFAULT 1,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE questions (
-  id SERIAL PRIMARY KEY,
-  category VARCHAR(100),
-  question TEXT NOT NULL,
-  option_a TEXT NOT NULL,
-  option_b TEXT NOT NULL,
-  option_c TEXT,
-  option_d TEXT,
-  correct_answer CHAR(1) NOT NULL
-);
-
-CREATE TABLE answer_history (
-  id SERIAL PRIMARY KEY,
-  user_id INTEGER REFERENCES users(id),
-  question_id INTEGER REFERENCES questions(id),
-  is_correct BOOLEAN,
-  chosen_answer CHAR(1),
-  answered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE daily_questions (
-  id SERIAL PRIMARY KEY,
-  question_id INTEGER REFERENCES questions(id),
-  date DATE NOT NULL
-);
-
-CREATE TABLE daily_counters (
-  id SERIAL PRIMARY KEY,
-  user_id INTEGER REFERENCES users(id),
-  date DATE NOT NULL,
-  answers_with_xp INTEGER DEFAULT 0,
-  UNIQUE (user_id, date)
-);
-```
-
-Run:
-
-```bash
-psql -U postgres -d bentobot -f db/init.sql
-```
-
----
-
-# 🔑 Create the `.env` file
-
-In the root folder:
-
-```
+```env
 DISCORD_TOKEN=YOUR_TOKEN_HERE
 
 DB_HOST=localhost
@@ -164,223 +98,73 @@ DB_PASSWORD=secure_password
 DB_NAME=bentobot
 ```
 
-⚠️ **Do not upload this file to GitHub**
+> ⚠️ Do not upload this file to GitHub
 
----
+### 5. Configure the database
 
-# Install Dependencies and Run
+```sql
+CREATE DATABASE bentobot;
+CREATE USER bentobot_user WITH PASSWORD 'secure_password';
+GRANT ALL PRIVILEGES ON DATABASE bentobot TO bentobot_user;
+```
 
-## Node.js
+```bash
+psql -U postgres -d bentobot -f db/init.sql
+psql -U bentobot_user -d bentobot -f db/seed.sql
+```
 
+### 6. Install dependencies and run
+
+**Node.js**
 ```bash
 npm install
 npm start
 ```
 
-## Python
-
+**Python**
 ```bash
 pip install -r requirements.txt
 python bot.py
 ```
 
----
-
-# Run the Bot
-
-## Node.js
-
-```bash
-npm start
-```
-
-## Python
-
-```bash
-python bot.py
-```
-
----
-
-# Docker Compose (Recommended)
-
-Create docker-compose.yml:
-
-```yaml
-version: "3.8"
-services:
-  db:
-    image: postgres:15
-    container_name: bentobot_db
-    environment:
-      POSTGRES_DB: bentobot
-      POSTGRES_USER: bentobot_user
-      POSTGRES_PASSWORD: secure_password
-    volumes:
-      - db_data:/var/lib/postgresql/data
-      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
-    ports:
-      - "5432:5432"
-
-  bot:
-    build: .
-    container_name: bentobot_app
-    depends_on:
-      - db
-    env_file:
-      - .env
-    volumes:
-      - .:/app
-    command: npm start
-    restart: unless-stopped
-
-volumes:
-  db_data:
-```
-
-Run:
+### 7. Docker Compose (Recommended)
 
 ```bash
 docker compose up --build -d
 docker compose logs -f bot
 ```
 
----
+***
 
-# Insert Initial Questions (Seed)
+## Command List
 
-File db/seed.sql:
+| Command | Description |
+|---------|-------------|
+| `!ping` | Test bot response |
+| `!help` | Show command list |
+| `!study <subject> <content>` | Register what you want to study |
+| `!quiz` | Start an infinite quiz in a private thread |
+| `!diary` | Answer the daily 10 questions (high XP) |
+| `!stop` | End the current quiz session |
+| `!profile` | Show full profile with XP and level |
+| `!xp` | Show total XP |
+| `!ranking` | Show global ranking |
+| `!history` | Show recent answer history |
 
-```sql
-INSERT INTO answers (category,question,option_a,option_b,option_c,option_d,correct_answer)
-VALUES
-('Math','What is 2+2?','3','4','5','6','B'),
-('Portuguese','Which is correct?','a','b','c','d','A');
-```
+***
 
-Run:
+## Key Concepts Applied
 
-```bash
-psql -U bentobot_user -d bentobot -f db/seed.sql
-```
+- Gamification applied to study habits
+- RESTful bot architecture with command handlers
+- PostgreSQL relational schema with foreign keys and constraints
+- Daily XP cap controlled via `daily_counters` table
+- Environment variable management with `.env`
+- Containerised infrastructure with Docker Compose
+- Persistent answer history and user progression
 
----
+***
 
-# Command List
+## Contact
 
-### General
-
-* !ping: Test bot response
-* !help: Show command list
-
-### Study
-
-* !study `<subject` `<content>`: Register what the user wants to study
-
-### Quiz & Training
-
-* !quiz: Start infinite quiz in private thread
-* !diary: Answer daily 10 questions (high XP)
-* !stop: End quiz session
-
-### Profile & XP
-
-* !profile: Show full profile
-* !xp: Show total XP
-
-### Ranking
-
-* !ranking: Show global ranking
-
-### History
-
-* !history: Show recent answers
-
----
-
-# XP Rules (MVP)
-
-* Only the first 10 correct answers per day grant XP
-* Additional answers are recorded but do not grant XP
-* Controlled via daily_counters table
-
----
-
-# Bot Commands
-
-| Comando      | Função                    |
-| ------------ | --------------------------|
-| `!quiz`      | Start a quiz              |
-| `!perfil`    | Show XP, level, progress  |
-| `!rank`      | Global ranking            |
-| `!historico` | User history              |
-| `!help`      | Command list              |
-
----
-
-# Quick Tests After Setup
-
-* Bot appears online on Discord
-* `!help` works
-* `!perfil` creates user in users table
-* `!quiz` records answers
-* XP increases only for first 10 correct answers per day
-* Useful queries:
-
-```bash
-psql -U bentobot_user -d bentobot -c "SELECT * FROM usuarios LIMIT 10;"
-psql -U bentobot_user -d bentobot -c "SELECT * FROM historico_respostas LIMIT 10;""
-```
-
----
-
-# MVP Features
-
-* Daily quizzes
-* Daily XP limit
-* Levels
-* Ranking
-* Answer history
-* Focus Rooms
-* Multiple categories
-
----
-
-# Future Improvements
-
-* Global ranking
-* Weekly leagues & seasons
-* Rare collectible achievements
-* Mobile app integration
-
----
-
-# Troubleshooting
-
-| Problema              | Solução                           |
-| ----------------------| -------------------------------   |
-| Bot not connecting    | Check `DISCORD_TOKEN`             |
-| DB connection error   | Verify user/password/port         |
-| Missing permissions   | Regenerate OAuth2 URL             |
-| Port 5432 in use      | Change port in docker-compose     |
-
----
-
-# Evaluation Checklist
-
-* Bot runs with `npm start` / `python bot.py`
-* PostgreSQL is working
-* Tables created correctly
-* Seed executed
-* Daily XP working
-* Docker Compose working
-* Clear documentation
-
----
-
-Made with 💙 to help students improve every day.
-
----
-
-# Contact
 For questions, suggestions, or feedback, please open an issue on the repository or contact directly via GitHub.
