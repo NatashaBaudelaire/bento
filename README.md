@@ -4,7 +4,7 @@
 
 ## Objective
 
-The main goal of this project was to develop a gamified chatbot for Discord, designed to encourage discipline, motivation, and consistency in studying through **quizzes, XP, levels, rankings, and focus tools**. The bot was built using **Node.js** with **Discord.js** (or Python with discord.py), integrated with a **PostgreSQL** database to persist user data, answer history, and daily XP control — with optional deployment via **Docker Compose**.
+The main goal of this project was to develop a gamified chatbot for Discord, designed to encourage discipline, motivation, and consistency in studying through quizzes, XP, levels, rankings, and focus tools. The bot was built using Node.js with Discord.js (or Python with discord.py), integrated with a PostgreSQL database to persist user data, answer history, and daily XP control with optional deployment via Docker Compose.
 
 ***
 
