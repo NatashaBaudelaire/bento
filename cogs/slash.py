@@ -19,7 +19,7 @@ class SlashCommands(commands.Cog):
         embed = discord.Embed(
             title="📚 Study Topic Set!",
             description=f"Subject: **{subject}**\nContent: **{content}**\n\n"
-                        "➡️ Use `/quiz` for practice or `/daily` for the daily challenge.",
+                        "➡️ Use `!quiz` for practice or `!daily` for the daily challenge.",
             color=discord.Color.blue(),
         )
         await interaction.response.send_message(embed=embed)
