@@ -2,7 +2,7 @@
   Bento Quest
 </h1>
 
-![Bento Bot Banner](banner.gif)
+![Bento Quest Banner](banner.gif)
 
 ## Table of Contents
 
@@ -165,7 +165,7 @@ pip install -r requirements.txt
 ### 3. Configure the bot on Discord
 
 1. Go to the [Discord Developer Portal](https://discord.com/developers/applications) and click **New Application**
-2. Name it **Bento Bot**, then go to **Bot → Add Bot** and copy the TOKEN
+2. Name it **Bento Quest**, then go to **Bot → Add Bot** and copy the TOKEN
 3. In **OAuth2 → URL Generator**, select scopes: `bot` and `applications.commands`; permissions: Send Messages, Read Messages, Embed Links, Manage Messages, Create Public Threads
 4. Generate the link and add the bot to your server
 
