@@ -49,6 +49,7 @@ EXTENSIONS = [
     "cogs.training",
     "cogs.ranking",
     "cogs.history",
+    "cogs.slash",
 ]
 
 async def load_extensions():
@@ -58,6 +59,12 @@ async def load_extensions():
             print(f"  [OK] Loaded extension: {extension}")
         except Exception as e:
             print(f"  [ERROR] Failed to load {extension}: {e}")
+
+    try:
+        synced = await bot.tree.sync()
+        print(f"  [OK] Synced {len(synced)} slash command(s)")
+    except Exception as e:
+        print(f"  [ERROR] Failed to sync slash commands: {e}")
 
 async def main():
     async with bot:
