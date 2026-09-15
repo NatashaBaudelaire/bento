@@ -1,21 +1,22 @@
 # Security Policy
 
-## Supported Versions
-
-Use this section to tell people about which versions of your project are
-currently being supported with security updates.
-
-| Version | Supported          |
-| ------- | ------------------ |
-| 5.1.x   | :white_check_mark: |
-| 5.0.x   | :x:                |
-| 4.0.x   | :white_check_mark: |
-| < 4.0   | :x:                |
-
 ## Reporting a Vulnerability
 
-Use this section to tell people how to report a vulnerability.
+If you discover a security vulnerability in **Bento**, please report it responsibly.
 
-Tell them where to go, how often they can expect to get an update on a
-reported vulnerability, what to expect if the vulnerability is accepted or
-declined, etc.
+**Do not open a public issue.** Instead, contact the maintainer directly by opening a private discussion or emailing through your preferred channel via GitHub.
+
+When reporting, please include:
+- A description of the vulnerability
+- Steps to reproduce (if applicable)
+- Potential impact
+
+## Response
+
+The maintainer will acknowledge receipt within **7 days** and aim to provide a fix or mitigation plan within **30 days**, depending on severity and availability.
+
+## Supported Versions
+
+| Version | Supported |
+| ------- | --------- |
+| Latest  | :white_check_mark: |
