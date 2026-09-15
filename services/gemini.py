@@ -1,3 +1,4 @@
+import math
 import os
 import aiohttp
 import json
@@ -13,10 +14,42 @@ GEMINI_URL = os.getenv(
 )
 
 
-def clean_json(text: str):
+def clean_json(text):
+    """Extract a JSON object from text (handles markdown code blocks and extra content)."""
     text = text.replace("```json", "").replace("```", "").strip()
     match = re.search(r"\{[\s\S]*\}", text)
     return match.group(0) if match else text
+
+
+def normalize_question(question):
+    """Validate and normalize a Gemini question response.
+
+    Falls back gracefully when alternatives are missing or incomplete.
+    Raises ValueError if the payload is unusable.
+    """
+    if not isinstance(question, dict) or not question.get("question"):
+        raise ValueError("Gemini response missing 'question' field")
+
+    q_type = question.get("type", "open")
+
+    if q_type == "multiple":
+        alts = question.get("alternatives")
+        if not isinstance(alts, dict):
+            question["type"] = "open"
+            question["alternatives"] = None
+        else:
+            filtered = {k: v for k, v in alts.items() if k in "ABCDE" and v}
+            if len(filtered) < 2:
+                question["type"] = "open"
+                question["alternatives"] = None
+            else:
+                question["alternatives"] = filtered
+
+    correct = question.get("correct", "")
+    if not str(correct).strip():
+        raise ValueError("Gemini response missing 'correct' field")
+
+    return question
 
 
 async def generate_gemini_question(subject, content):
@@ -62,7 +95,10 @@ Rules:
     try:
         async with aiohttp.ClientSession() as session:
             async with session.post(
-                GEMINI_URL, headers=headers, json=body, timeout=aiohttp.ClientTimeout(total=30)
+                GEMINI_URL,
+                headers=headers,
+                json=body,
+                timeout=aiohttp.ClientTimeout(total=30),
             ) as resp:
 
                 if resp.status != 200:
@@ -81,22 +117,7 @@ Rules:
 
                 cleaned_text = clean_json(text)
                 question = json.loads(cleaned_text)
-
-                if "question" not in question:
-                    raise ValueError("Gemini response missing 'question' field")
-
-                if question.get("type") == "multiple":
-                    alts = question.get("alternatives")
-                    if not isinstance(alts, dict):
-                        question["alternatives"] = None
-                        question["type"] = "open"
-                    else:
-                        filtered = {k: v for k, v in alts.items() if k in "ABCDE" and v}
-                        question["alternatives"] = filtered if filtered else None
-                        if not filtered:
-                            question["type"] = "open"
-
-                return question
+                return normalize_question(question)
 
     except aiohttp.ClientError as e:
         raise ValueError(f"Gemini connection error: {e}")
