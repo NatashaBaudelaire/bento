@@ -270,7 +270,7 @@ class Training(commands.Cog):
         try:
             await thread.send(
                 f"📅 {user.mention}, starting your **daily challenge**!\n"
-                f"Progress: **{done}/10** correct answers neded.\nUse **!stop** to end."
+                f"Progress: **{done}/10** correct answers today.\nUse **!stop** to end."
             )
         except discord.HTTPException:
             return
