@@ -18,7 +18,7 @@
 
 ## Project Overview
 
-Bento Quest is a professional gamified Discord bot designed to transform study routines into a light and engaging experience. Students choose a study topic and answer AI-generated questions powered by the Google Gemini API, earning XP for correct answers, leveling up through a progressive curve, competing in global and daily rankings, unlocking achievements, and completing daily missions — all within Discord. User data, study preferences, answer history, and daily XP are persisted in PostgreSQL through a structured data layer, with daily XP limits designed to encourage consistency rather than grinding.
+Bento Quest is a professional gamified Discord bot designed to transform study routines into a light and engaging experience. Students choose a study topic and answer AI-generated questions powered by the Google Gemini API, earning XP for correct answers, leveling up through a progressive curve, competing in global and daily rankings, unlocking achievements, and completing daily missions, all within Discord. User data, study preferences, answer history, and daily XP are persisted in PostgreSQL through a structured data layer, with daily XP limits designed to encourage consistency rather than grinding.
 
 ## Technologies Used
 
