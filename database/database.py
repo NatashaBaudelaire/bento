@@ -376,25 +376,12 @@ async def update_mission_progress(user_id, mission_name, increment=1):
     async with pool.acquire() as conn:
         rows = await conn.fetch("""
             UPDATE missions
-            SET progress = progress + $3,
-                completed = CASE WHEN progress + $3 >= objective THEN TRUE ELSE FALSE END
+            SET progress = LEAST(objective, progress + $3),
+                completed = CASE WHEN LEAST(objective, progress + $3) >= objective THEN TRUE ELSE FALSE END
             WHERE user_id = $1 AND date_day = CURRENT_DATE AND name = $2 AND completed = FALSE
             RETURNING id, name, reward_xp, completed
         """, user_id, mission_name, increment)
         return [dict(r) for r in rows]
-
-
-async def claim_mission(user_id, mission_id):
-    """Claim a completed mission reward. Returns reward_xp or 0."""
-    pool = await get_pool()
-    async with pool.acquire() as conn:
-        row = await conn.fetchrow("""
-            UPDATE missions
-            SET claimed = TRUE
-            WHERE user_id = $1 AND id = $2 AND completed = TRUE AND claimed = FALSE
-            RETURNING reward_xp
-        """, user_id, mission_id)
-        return row["reward_xp"] if row else 0
 
 
 async def generate_daily_missions(user_id):
