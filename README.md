@@ -1,5 +1,5 @@
 <h1 align="center">
-  🍱 Bento Bot
+  Bento Quest
 </h1>
 
 ![Bento Bot Banner](banner.gif)
@@ -18,7 +18,7 @@
 
 ## Project Overview
 
-Bento Bot is a professional gamified Discord bot designed to transform study routines into a light and engaging experience. Students set a study topic and answer AI-generated questions powered by the Google Gemini API, earning XP for correct answers, leveling up through a progressive curve, competing on global and daily rankings, unlocking achievements, and completing daily missions — all inside Discord. User data, study preferences, answer history, and daily XP control are persisted in PostgreSQL through a structured data layer, with daily XP limits to encourage consistency over grinding.
+Bento Quest is a professional gamified Discord bot designed to transform study routines into a light and engaging experience. Students choose a study topic and answer AI-generated questions powered by the Google Gemini API, earning XP for correct answers, leveling up through a progressive curve, competing in global and daily rankings, unlocking achievements, and completing daily missions — all within Discord. User data, study preferences, answer history, and daily XP are persisted in PostgreSQL through a structured data layer, with daily XP limits designed to encourage consistency rather than grinding.
 
 ## Technologies Used
 
@@ -81,7 +81,7 @@ All achievements are stored in the database, never duplicated, and announced in 
 Completing a mission grants bonus XP automatically.
 
 ### Daily XP Control
-The `daily_xp` table tracks how many **correct** answers a user has given today — wrong answers never count toward the daily limit, so the daily challenge cannot be "completed" with wrong answers.
+The `daily_xp` table tracks how many **correct** answers a user has given today, wrong answers never count toward the daily limit, so the daily challenge cannot be "completed" with wrong answers.
 
 ## Command List
 
@@ -122,7 +122,7 @@ requirements.txt         # Python dependencies
 .env.example             # Environment template (no secrets)
 database/
   schema.sql             # Complete PostgreSQL DDL (7 tables, 7 indexes)
-  database.py            # Data access layer — all queries and transactions
+  database.py            # Data access layer, all queries and transactions
   __init__.py
 services/
   gemini.py              # Gemini API client + JSON normalization
@@ -148,8 +148,8 @@ tests/
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/natashabaudelaire/bentobot
-cd bentobot
+git clone https://github.com/natashabaudelaire/bento-quest
+cd bento-quest
 ```
 
 ### 2. Create a virtual environment and install dependencies
@@ -165,7 +165,7 @@ pip install -r requirements.txt
 ### 3. Configure the bot on Discord
 
 1. Go to the [Discord Developer Portal](https://discord.com/developers/applications) and click **New Application**
-2. Name it **BentoBot**, then go to **Bot → Add Bot** and copy the TOKEN
+2. Name it **Bento Bot**, then go to **Bot → Add Bot** and copy the TOKEN
 3. In **OAuth2 → URL Generator**, select scopes: `bot` and `applications.commands`; permissions: Send Messages, Read Messages, Embed Links, Manage Messages, Create Public Threads
 4. Generate the link and add the bot to your server
 
