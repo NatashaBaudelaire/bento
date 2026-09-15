@@ -121,7 +121,7 @@ bentobot.py              # Entry point: env validation, cog loading, slash sync
 requirements.txt         # Python dependencies
 .env.example             # Environment template (no secrets)
 database/
-  schema.sql             # Complete PostgreSQL DDL (7 tables, 7 indexes)
+  schema.sql             # Complete PostgreSQL DDL (7 tables, 6 indexes)
   database.py            # Data access layer, all queries and transactions
   __init__.py
 services/
@@ -148,8 +148,8 @@ tests/
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/natashabaudelaire/bento-quest
-cd bento-quest
+git clone https://github.com/NatashaBaudelaire/quiz-quest-bot
+cd quiz-quest-bot
 ```
 
 ### 2. Create a virtual environment and install dependencies
@@ -166,7 +166,7 @@ pip install -r requirements.txt
 
 1. Go to the [Discord Developer Portal](https://discord.com/developers/applications) and click **New Application**
 2. Name it **Bento**, then go to **Bot → Add Bot** and copy the TOKEN
-3. In **OAuth2 → URL Generator**, select scopes: `bot` and `applications.commands`; permissions: Send Messages, Read Messages, Embed Links, Manage Messages, Create Public Threads
+3. In **OAuth2 → URL Generator**, select scopes: `bot` and `applications.commands`; permissions: Send Messages, Read Messages, Embed Links, Manage Messages, Create Public Threads, Manage Threads
 4. Generate the link and add the bot to your server
 
 > ⚠️ Never publish your TOKEN on GitHub
