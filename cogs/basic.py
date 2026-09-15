@@ -14,7 +14,7 @@ class Basic(commands.Cog):
     @commands.command(name="help")
     async def help(self, ctx):
         embed = discord.Embed(
-            title="📘 Bento Quest Command List",
+            title="📘 Bento Bot Command List",
             description="Master your subjects with AI-powered quizzes and tracking.",
             color=discord.Color.green(),
         )
