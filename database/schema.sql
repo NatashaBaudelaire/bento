@@ -1,4 +1,4 @@
--- Bento Quest Database Schema
+-- Bento Bot Database Schema
 -- PostgreSQL
 
 -- ==================================================
