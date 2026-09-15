@@ -37,6 +37,7 @@ async def on_ready():
 
     try:
         await db.get_pool()
+        await db.seed_achievements()
         print("🌐 Database connected successfully!")
     except Exception as e:
         print(f"❌ ERROR connecting to database: {e}")
