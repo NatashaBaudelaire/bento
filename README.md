@@ -1,57 +1,147 @@
 <h1 align="center">
-  Bento Bot
+  🍱 Bento Bot
 </h1>
 
-## Objective
+![Bento Bot Banner](banner.gif)
 
-The main goal of this project is a gamified chatbot for Discord designed to encourage discipline, motivation, and consistency in studying through quizzes, XP, levels, rankings, and focus tools. The bot is built with **Python** using **discord.py**, integrated with a **PostgreSQL** database to persist user data, study preferences, answer history, and daily XP control.
-
-***
-
-## Contents
+## Table of Contents
 
 1. [Project Overview](#project-overview)
 2. [Technologies Used](#technologies-used)
-3. [Installation and Execution](#installation-and-execution)
-4. [Command List](#command-list)
-5. [Project Structure](#project-structure)
-6. [Gamification System](#gamification-system)
-7. [Limitations](#limitations)
-8. [Contact](#contact)
-
-***
+3. [Key Features](#key-features)
+4. [Gamification System](#gamification-system)
+5. [Command List](#command-list)
+6. [Project Structure](#project-structure)
+7. [Installation and Execution](#installation-and-execution)
+8. [Key Concepts Applied](#key-concepts-applied)
+9. [Contact](#contact)
 
 ## Project Overview
 
-Bento Bot transforms study routines into a light and engaging experience using game mechanics. Players set a study topic, answer AI-generated questions, earn XP for correct answers, level up, compete on global and daily rankings, unlock achievements, complete missions, and track their answer history — all inside Discord.
-
-***
+Bento Bot is a professional gamified Discord bot designed to transform study routines into a light and engaging experience. Students set a study topic and answer AI-generated questions powered by the Google Gemini API, earning XP for correct answers, leveling up through a progressive curve, competing on global and daily rankings, unlocking achievements, and completing daily missions — all inside Discord. User data, study preferences, answer history, and daily XP control are persisted in PostgreSQL through a structured data layer, with daily XP limits to encourage consistency over grinding.
 
 ## Technologies Used
 
 - **Python 3.10+**
 - **discord.py** (prefix and slash commands)
 - **PostgreSQL** with **asyncpg**
-- **Google Gemini API** (question generation)
-- **Git & GitHub**
+- **Google Gemini API** (AI question generation)
+- **aiohttp** (API client)
 - **pytest** (testing)
-
-***
 
 ## Key Features
 
-- Daily quizzes with AI-generated questions based on the user's chosen subject
-- XP and leveling system with progressive difficulty
-- Global and daily rankings
-- Daily challenge: first 10 **correct** answers per day grant bonus XP
-- Answer history tracking per user with pagination
-- Persistent study preferences
-- Achievement system (auto-unlocked)
-- Daily missions with XP rewards
-- Focus threads for dedicated study sessions
-- Persistent data via PostgreSQL with structured DDL
+- **AI-Powered Quizzes**: Unlimited practice questions generated on the fly from the user's chosen subject
+- **Daily Challenge**: First 10 **correct** answers per day grant bonus XP
+- **XP and Leveling System**: Progressive level curve that rewards frequent early progress and requires more XP at higher levels
+- **Global & Daily Rankings**: Leaderboards rendered as Embeds, with daily ranking based on XP earned (not raw answer count)
+- **Achievement System**: 10 achievements automatically unlocked and announced the moment they are earned
+- **Daily Missions**: 5 personalized missions per day with XP bonus rewards
+- **Persistent Study Preferences**: Topic and content survive bot restarts
+- **Answer History**: Full paginated review of past questions, answers, and results
+- **Focus Threads**: Dedicated private-style threads for distraction-free study sessions
+- **Anti-Spam Protection**: Per-session locks prevent concurrent answer processing
+- **Slash & Prefix Commands**: Both `/commands` and `!commands` are supported
+- **Robust Error Handling**: Invalid or incomplete AI responses never crash the bot
 
-***
+## Gamification System
+
+The application implements a complete gamification loop designed to incentivize consistent study:
+
+### XP & Levels
+- **Quiz mode**: +5 XP per correct answer
+- **Daily mode**: +20 XP per correct answer (limit of 10 per day)
+- **Level formula**: `level = floor(sqrt(total_xp / 50)) + 1`
+- Early levels are reached quickly; each subsequent level requires more XP
+- Level, XP-in-level, and progress bar are always computed from a single centralized function
+
+### Achievements (10 total)
+| Achievement | Criteria |
+|-------------|----------|
+| First Steps | Answer 1 question |
+| Daily Warrior | Complete the daily 10 |
+| Sharp Mind | 10 correct answers |
+| Scholar | 50 correct answers |
+| Century Club | 100 total XP |
+| XP Master | 500 total XP |
+| XP Legend | 1000 total XP |
+| Leveling Up | Reach level 5 |
+| Veteran | Reach level 10 |
+| Consistent | Complete 3 daily challenges in a row |
+
+All achievements are stored in the database, never duplicated, and announced in Discord when unlocked.
+
+### Daily Missions (5 per day)
+- Answer 5 Questions in any mode
+- Get 3 Correct answers
+- Complete the Daily challenge
+- Earn 50 XP in a single day
+- Start a Study Session with `!quiz`
+
+Completing a mission grants bonus XP automatically.
+
+### Daily XP Control
+The `daily_xp` table tracks how many **correct** answers a user has given today — wrong answers never count toward the daily limit, so the daily challenge cannot be "completed" with wrong answers.
+
+## Command List
+
+### Prefix Commands
+
+| Command | Description |
+|---------|-------------|
+| `!ping` | Test bot response |
+| `!help` | Show the command guide |
+| `!study <subject> <content>` | Set your study topic (persisted to the database) |
+| `!quiz` | Start an unlimited practice session in a thread |
+| `!daily` | Complete the 10-question daily challenge for bonus XP |
+| `!stop` | End your current session (inside the thread) |
+| `!profile` | Full profile with level, XP, accuracy, and progress |
+| `!xp` | Quick check of total XP |
+| `!rank` | Global XP leaderboard (top 20) |
+| `!rankday` | Daily performance leaderboard |
+| `!top10` | Elite leaderboard |
+| `!history <page>` | Paginated review of past answers |
+
+### Slash Commands
+
+| Command | Description |
+|---------|-------------|
+| `/study <subject> <content>` | Set your study topic |
+| `/profile` | Show your full profile |
+| `/xp` | Show total XP |
+| `/rank` | Global XP leaderboard |
+| `/history <page>` | Review your past answers |
+
+## Project Structure
+
+The project follows a clean layered architecture separating data, services, and presentation:
+
+```
+bentobot.py              # Entry point: env validation, cog loading, slash sync
+requirements.txt         # Python dependencies
+.env.example             # Environment template (no secrets)
+database/
+  schema.sql             # Complete PostgreSQL DDL (7 tables, 7 indexes)
+  database.py            # Data access layer — all queries and transactions
+  __init__.py
+services/
+  gemini.py              # Gemini API client + JSON normalization
+  gamification.py        # Pure logic: XP, levels, achievements, missions
+cogs/
+  basic.py               # !ping, !help
+  study.py               # !study + persisted preferences
+  profile.py             # !profile, !xp
+  training.py            # !quiz, !daily, !stop, sessions, rewards
+  ranking.py             # !rank, !rankday, !top10
+  history.py             # !history
+  slash.py               # Slash command wrappers
+tests/
+  test_leveling.py       # Progression tests
+  test_gamification.py   # Core rule tests
+  test_gemini.py         # API client tests
+  test_database.py       # Data layer tests (mocked)
+  test_training.py       # Daily/session logic tests
+```
 
 ## Installation and Execution
 
@@ -101,7 +191,6 @@ GEMINI_API_URL=https://generativelanguage.googleapis.com/v1beta/openai/chat/comp
 ### 5. Configure the database
 
 ```bash
-# Start PostgreSQL and create the database and user
 psql -U postgres
 ```
 
@@ -129,108 +218,21 @@ python bentobot.py
 pytest
 ```
 
-***
+## Key Concepts Applied
 
-## Command List
-
-### Prefix commands
-
-| Command | Description |
-|---------|-------------|
-| `!ping` | Test bot response |
-| `!help` | Show command list |
-| `!study <subject> <content>` | Set your current study topic (persisted) |
-| `!quiz` | Start an unlimited practice session in a thread |
-| `!daily` | Complete 10 correct questions for **Bonus XP** |
-| `!stop` | End your current session (inside the thread) |
-| `!profile` | Show full profile with level, XP, and accuracy |
-| `!xp` | Show total XP |
-| `!rank` | Global XP leaderboard (top 20) |
-| `!rankday` | Daily performance leaderboard (top 20) |
-| `!top10` | Elite leaderboard (top 10) |
-| `!history <page>` | Review your past answers with pagination |
-
-### Slash commands
-
-| Command | Description |
-|---------|-------------|
-| `/study <subject> <content>` | Set your current study topic |
-| `/profile` | Show your full profile |
-| `/xp` | Show total XP |
-| `/rank` | Global XP leaderboard |
-| `/history <page>` | Review your past answers |
-
-***
-
-## Project Structure
-
-```
-bentobot.py              # Entry point: env validation, bot setup, cog loading
-requirements.txt         # Python dependencies
-.env.example             # Environment variable template (no secrets)
-database/
-  schema.sql             # Full PostgreSQL DDL
-  database.py            # Data access layer (all queries/transactions)
-  __init__.py
-services/
-  gemini.py              # Gemini API client + JSON normalization
-  gamification.py        # Pure gamification logic (level, XP, achievements)
-cogs/
-  basic.py               # !ping, !help
-  study.py               # !study + persisted preferences
-  profile.py             # !profile, !xp
-  training.py            # !quiz, !daily, !stop, sessions, achievements, missions
-  ranking.py             # !rank, !rankday, !top10
-  history.py             # !history
-  slash.py               # Slash command wrappers
-tests/
-  test_*.py              # pytest suite
-```
-
-***
-
-## Gamification System
-
-### XP & Levels
-
-- Quiz mode: **+5 XP** per correct answer
-- Daily mode: **+20 XP** per correct answer (max 10 per day)
-- Level formula: `level = floor(sqrt(total_xp / 50)) + 1`
-- Early levels are fast; higher levels require progressively more XP
-
-### Achievements
-
-Achievements are stored in the database and unlocked automatically when criteria are met. They are sent as a Discord message the moment they are earned. Current set:
-
-| Key | Name | Criteria |
-|-----|------|----------|
-| `first_quiz` | First Steps | Answer 1 question |
-| `correct_10` | Sharp Mind | 10 correct answers |
-| `correct_50` | Scholar | 50 correct answers |
-| `xp_100` | Century Club | 100 total XP |
-| `xp_500` | XP Master | 500 total XP |
-| `xp_1000` | XP Legend | 1000 total XP |
-| `level_5` | Leveling Up | Reach level 5 |
-| `level_10` | Veteran | Reach level 10 |
-| `first_daily` | Daily Warrior | Complete the daily 10 |
-| `streak_3` | Consistent | 3 daily challenges in a row |
-
-### Daily Missions
-
-Five daily missions are generated per user per day: answer 5 questions, get 3 correct, complete the daily, earn 50 XP, and start a study session. Completing a mission grants bonus XP automatically.
-
-### Daily XP Control
-
-The `daily_xp` table tracks how many **correct** answers a user has given today. Only correct answers count towards the 10-question daily limit, so the daily cannot be "completed" with wrong answers.
-
-***
-
-## Limitations
-
-- Threads are created as public threads with per-member permission overrides (private threads require Boost Level 2). If permission setting fails, other members may still see the thread.
-- Slash commands currently cover the read-only commands (`/study`, `/profile`, `/xp`, `/rank`, `/history`). Full migration of `/quiz` and `/daily` to slash is a future step.
-
-***
+- Command handling with discord.py Cogs (modular architecture)
+- Layered design separating data access, business logic, and presentation
+- PostgreSQL relational schema with foreign keys and constraints
+- Persisted study preferences and user progression
+- Daily XP cap controlled via the `daily_xp` table
+- Progressive leveling curve with centralized calculation
+- Automatic achievement unlocking with no duplication
+- Mission-based challenges with XP reward flows
+- Environment variable management with `.env`
+- Input validation and defensive parsing of third-party AI responses
+- Per-session concurrency control against message spam
+- Rate-safe leaderboard rendering with Embeds
+- Unit testing with pytest (mocked data layer and API)
 
 ## Contact
 
