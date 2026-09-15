@@ -2,6 +2,7 @@ import asyncio
 import discord
 from discord.ext import commands
 from services.gemini import generate_gemini_question
+from services.gamification import check_answer, xp_for_correct, consecutive_days, achievement_criteria
 import database.database as db
 
 
@@ -102,56 +103,25 @@ class Training(commands.Cog):
     # ==================================================
     #  ACHIEVEMENTS
     # ==================================================
-    @staticmethod
-    def _consecutive_days(dates):
-        from datetime import timedelta
-
-        if not dates:
-            return 0
-
-        count = 1
-        for i in range(1, len(dates)):
-            if dates[i - 1] - dates[i] == timedelta(days=1):
-                count += 1
-            else:
-                break
-        return count
-
     async def check_achievements(self, user_id):
         data = await db.get_profile_data(user_id)
         if not data:
             return
 
         xp = data["xp"]
-        correct = data["correct"]
-        total = data["total_answers"]
         level, _, _ = db.get_level_progress(xp)
+        data["level"] = level
 
         daily_dates = await db.get_daily_completion_dates(user_id, daily_goal=10)
-        streak = self._consecutive_days(daily_dates)
+        streak = consecutive_days(daily_dates)
 
-        criteria = {
-            "first_quiz": total >= 1,
-            "correct_10": correct >= 10,
-            "correct_50": correct >= 50,
-            "xp_100": xp >= 100,
-            "xp_500": xp >= 500,
-            "xp_1000": xp >= 1000,
-            "level_5": level >= 5,
-            "level_10": level >= 10,
-            "streak_3": streak >= 3,
-        }
+        criteria = achievement_criteria(data, streak)
 
         for key, met in criteria.items():
             if met and await db.unlock_achievement(user_id, key):
                 achievement = await db.get_achievement_by_key(key)
                 if achievement:
-                    try:
-                        await self.bot.get_cog("Training").send_achievement_feedback(
-                            user_id, achievement
-                        )
-                    except Exception:
-                        pass
+                    await self.send_achievement_feedback(user_id, achievement)
 
     async def send_achievement_feedback(self, user_id, achievement):
         session = self.sessions.get(user_id)
@@ -168,7 +138,23 @@ class Training(commands.Cog):
     # ==================================================
     #  MISSIONS
     # ==================================================
+    async def _grant_mission_rewards(self, user_id, missions):
+        """Grant XP and send feedback for completed missions (no duplicates)."""
+        session = self.sessions.get(user_id)
+        for mission in missions:
+            if mission["completed"] and mission["reward_xp"] > 0:
+                await db.add_xp(user_id, mission["reward_xp"])
+                if session:
+                    try:
+                        await session["channel"].send(
+                            f"🎯 **Mission complete: {mission['name']}** "
+                            f"(+{mission['reward_xp']} XP bonus!)"
+                        )
+                    except discord.HTTPException:
+                        pass
+
     async def handle_mission_hooks(self, user_id, correct, xp, mode, missions_extra=None):
+        """Update mission progress after an answered question."""
         completed_gained = []
 
         if missions_extra:
@@ -190,17 +176,7 @@ class Training(commands.Cog):
         for m in completed_gained:
             seen[m["id"]] = m
 
-        session = self.sessions.get(user_id)
-        for mission in seen.values():
-            if mission["completed"] and mission["reward_xp"] > 0:
-                await db.add_xp(user_id, mission["reward_xp"])
-                if session:
-                    try:
-                        await session["channel"].send(
-                            f"🎯 **Mission complete: {mission['name']}** (+{mission['reward_xp']} XP bonus!)"
-                        )
-                    except discord.HTTPException:
-                        pass
+        await self._grant_mission_rewards(user_id, seen.values())
 
     # ==================================================
     #  COMMANDS
@@ -241,7 +217,8 @@ class Training(commands.Cog):
             "content": pref["content"],
         }
 
-        await self.handle_mission_hooks(user_id, False, 0, "study", missions_extra=["Study Session"])
+        missions = await db.update_mission_progress(user_id, "Study Session", 1)
+        await self._grant_mission_rewards(user_id, missions)
         await self.send_question(user_id)
 
     @commands.command(name="daily")
@@ -326,22 +303,11 @@ class Training(commands.Cog):
             return
 
         mode = session["mode"]
-        question_type = question.get("type", "open")
-        correct_value = str(question.get("correct", "")).strip().lower()
-        content = msg.content.lower().strip()
-
-        if question_type == "multiple":
-            valid_letters = {k.lower() for k in (question.get("alternatives") or {})}
-            user_answer = content[:1]
-            correct_letter = correct_value[:1]
-            is_correct = user_answer in valid_letters and user_answer == correct_letter
-        else:
-            user_answer = content
-            is_correct = user_answer == correct_value
+        is_correct, user_answer, correct_value = check_answer(question, msg.content)
 
         xp = 0
         if is_correct:
-            xp = 20 if mode == "daily" else 5
+            xp = xp_for_correct(mode)
             await db.add_xp(user_id, xp)
             if mode == "daily":
                 await db.increment_daily_correct(user_id)
@@ -357,7 +323,7 @@ class Training(commands.Cog):
         await db.register_answer(
             user_id,
             question["question"],
-            question_type,
+            question.get("type", "open"),
             question.get("alternatives"),
             user_answer,
             correct_value,
