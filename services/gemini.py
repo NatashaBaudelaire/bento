@@ -7,11 +7,12 @@ from dotenv import load_dotenv
 load_dotenv()
 
 GEMINI_KEY = os.getenv("GEMINI_API_KEY")
-# Note: The URL and model name may need to be updated based on the latest Gemini API specifications.
-GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
+GEMINI_URL = os.getenv(
+    "GEMINI_API_URL",
+    "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+)
 
 
-# This function attempts to extract a valid JSON object from the text, even if it's wrapped in markdown code blocks or contains extra text.
 def clean_json(text: str):
     text = text.replace("```json", "").replace("```", "").strip()
     match = re.search(r"\{[\s\S]*\}", text)
@@ -31,6 +32,7 @@ Rules:
 - Avoid repetitive questions.
 - Question can be open-ended or multiple choice.
 - Alternatives must be plausible and shuffled.
+- For multiple choice, always provide at least 4 alternatives (A-D).
 - Respond ONLY with a valid JSON:
 
 {{
@@ -40,46 +42,63 @@ Rules:
     "A": "...",
     "B": "...",
     "C": "...",
-    "D": "...",
-    "E": "..."
+    "D": "..."
   }} or null,
   "correct": "text or letter"
 }}
 """
 
     body = {
-        "model": "gemini-2.0-flash", # Updated to a current model version.
+        "model": "gemini-2.0-flash",
         "messages": [{"role": "user", "content": prompt}],
-        "temperature": 0.85
+        "temperature": 0.85,
     }
 
     headers = {
         "Content-Type": "application/json",
-        "Authorization": f"Bearer {GEMINI_KEY}"
+        "Authorization": f"Bearer {GEMINI_KEY}",
     }
 
-    async with aiohttp.ClientSession() as session:
-        async with session.post(GEMINI_URL, headers=headers, json=body) as resp:
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                GEMINI_URL, headers=headers, json=body, timeout=aiohttp.ClientTimeout(total=30)
+            ) as resp:
 
-            status = resp.status
-            raw = await resp.json()
+                if resp.status != 200:
+                    error_text = await resp.text()
+                    raise ValueError(f"Gemini API error (status {resp.status}): {error_text[:200]}")
 
-            # Minimum debug to diagnose errors.
-            print("=== GEMINI DEBUG ===")
-            print("STATUS:", status)
-            print(json.dumps(raw, indent=2))
-            print("====================")
+                raw = await resp.json()
 
-            if status != 200:
-                raise ValueError(f"Gemini API Error. Status: {status}")
+                choices = raw.get("choices", [])
+                if not choices:
+                    raise ValueError("Gemini returned no choices")
 
-            text = raw["choices"][0]["message"].get("content", "")
+                text = choices[0].get("message", {}).get("content", "")
+                if not text:
+                    raise ValueError("Gemini returned empty content")
 
-            cleaned_text = clean_json(text)
+                cleaned_text = clean_json(text)
+                question = json.loads(cleaned_text)
 
-            try:
-                return json.loads(cleaned_text)
-            except Exception as e:
-                print("RAW RECEIVED JSON:", text)
-                print("CLEANED JSON:", cleaned_text)
-                raise ValueError("Gemini did not return a valid JSON.") from e
+                if "question" not in question:
+                    raise ValueError("Gemini response missing 'question' field")
+
+                if question.get("type") == "multiple":
+                    alts = question.get("alternatives")
+                    if not isinstance(alts, dict):
+                        question["alternatives"] = None
+                        question["type"] = "open"
+                    else:
+                        filtered = {k: v for k, v in alts.items() if k in "ABCDE" and v}
+                        question["alternatives"] = filtered if filtered else None
+                        if not filtered:
+                            question["type"] = "open"
+
+                return question
+
+    except aiohttp.ClientError as e:
+        raise ValueError(f"Gemini connection error: {e}")
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Gemini returned invalid JSON: {e}")
