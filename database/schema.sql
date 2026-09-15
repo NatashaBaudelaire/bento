@@ -1,4 +1,4 @@
--- Bento Bot Database Schema
+-- Bento Database Schema
 -- PostgreSQL
 
 -- ==================================================
@@ -89,7 +89,6 @@ CREATE TABLE IF NOT EXISTS missions (
 -- ==================================================
 --  INDEXES
 -- ==================================================
-CREATE INDEX IF NOT EXISTS idx_answer_history_user_id ON answer_history(user_id);
 CREATE INDEX IF NOT EXISTS idx_answer_history_answered_at ON answer_history(answered_at DESC);
 CREATE INDEX IF NOT EXISTS idx_answer_history_user_date ON answer_history(user_id, answered_at DESC);
 CREATE INDEX IF NOT EXISTS idx_daily_xp_date ON daily_xp(date_day);
