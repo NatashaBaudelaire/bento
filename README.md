@@ -148,8 +148,8 @@ tests/
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/NatashaBaudelaire/quiz-quest-bot
-cd quiz-quest-bot
+git clone https://github.com/NatashaBaudelaire/bento
+cd bento
 ```
 
 ### 2. Create a virtual environment and install dependencies
