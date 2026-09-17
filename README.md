@@ -1,5 +1,5 @@
 <h1 align="center">
-  Quiz Quest Bot
+  Bento
 </h1>
 
 ## Table of Contents
